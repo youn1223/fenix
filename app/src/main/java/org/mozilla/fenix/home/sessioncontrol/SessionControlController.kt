@@ -11,7 +11,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import mozilla.components.browser.state.selector.getNormalOrPrivateTabs
+import mozilla.components.browser.session.SessionManager
 import mozilla.components.browser.state.state.selectedOrDefaultSearchEngine
 import mozilla.components.browser.state.store.BrowserStore
 import mozilla.components.concept.engine.Engine
@@ -36,6 +36,7 @@ import org.mozilla.fenix.components.tips.Tip
 import org.mozilla.fenix.ext.components
 import org.mozilla.fenix.ext.metrics
 import org.mozilla.fenix.ext.nav
+import org.mozilla.fenix.ext.sessionsOfType
 import org.mozilla.fenix.home.HomeFragment
 import org.mozilla.fenix.home.HomeFragmentAction
 import org.mozilla.fenix.home.HomeFragmentDirections
@@ -172,6 +173,7 @@ class DefaultSessionControlController(
     private val settings: Settings,
     private val engine: Engine,
     private val metrics: MetricController,
+    private val sessionManager: SessionManager,
     private val store: BrowserStore,
     private val tabCollectionStorage: TabCollectionStorage,
     private val addTabUseCase: TabsUseCases.AddNewTabUseCase,
@@ -215,10 +217,8 @@ class DefaultSessionControlController(
             tab,
             onTabRestored = {
                 activity.openToBrowser(BrowserDirection.FromHome)
-                store.state.selectedTabId?.let {
-                    selectTabUseCase.invoke(it)
-                    reloadUrlUseCase.invoke(it)
-                }
+                sessionManager.selectedSession?.let { selectTabUseCase.invoke(it) }
+                reloadUrlUseCase.invoke(sessionManager.selectedSession)
             },
             onFailure = {
                 activity.openToBrowserAndLoad(
@@ -461,8 +461,8 @@ class DefaultSessionControlController(
         // Only register the observer right before moving to collection creation
         registerCollectionStorageObserver()
 
-        val tabIds = store.state
-            .getNormalOrPrivateTabs(private = activity.browsingModeManager.mode.isPrivate)
+        val tabIds = sessionManager
+            .sessionsOfType(private = activity.browsingModeManager.mode.isPrivate)
             .map { session -> session.id }
             .toList()
             .toTypedArray()

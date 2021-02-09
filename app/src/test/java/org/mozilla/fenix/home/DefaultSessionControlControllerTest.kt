@@ -12,14 +12,14 @@ import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.TestCoroutineScope
+import mozilla.components.browser.session.Session
+import mozilla.components.browser.session.SessionManager
 import mozilla.components.browser.state.action.SearchAction
-import mozilla.components.browser.state.action.TabListAction
 import mozilla.components.browser.state.search.RegionState
 import mozilla.components.browser.state.search.SearchEngine
 import mozilla.components.browser.state.state.BrowserState
 import mozilla.components.browser.state.state.ReaderState
 import mozilla.components.browser.state.state.SearchState
-import mozilla.components.browser.state.state.createTab
 import mozilla.components.browser.state.state.recover.RecoverableTab
 import mozilla.components.browser.state.store.BrowserStore
 import mozilla.components.concept.engine.Engine
@@ -60,6 +60,7 @@ class DefaultSessionControlControllerTest {
     private val fragmentStore: HomeFragmentStore = mockk(relaxed = true)
     private val navController: NavController = mockk(relaxed = true)
     private val metrics: MetricController = mockk(relaxed = true)
+    private val sessionManager: SessionManager = mockk(relaxed = true)
     private val engine: Engine = mockk(relaxed = true)
     private val tabCollectionStorage: TabCollectionStorage = mockk(relaxed = true)
     private val tabsUseCases: TabsUseCases = mockk(relaxed = true)
@@ -107,6 +108,7 @@ class DefaultSessionControlControllerTest {
             showCollectionPlaceholder = true
         )
 
+        every { sessionManager.sessions } returns emptyList()
         every { navController.currentDestination } returns mockk {
             every { id } returns R.id.homeFragment
         }
@@ -123,6 +125,7 @@ class DefaultSessionControlControllerTest {
             settings = settings,
             engine = engine,
             metrics = metrics,
+            sessionManager = sessionManager,
             tabCollectionStorage = tabCollectionStorage,
             addTabUseCase = tabsUseCases.addTab,
             reloadUrlUseCase = reloadUrlUseCase.reload,
@@ -199,16 +202,15 @@ class DefaultSessionControlControllerTest {
             every { restore(activity, engine, restoreSessionId = false) } returns restoredTab
         }
 
-        store.dispatch(TabListAction.AddTabAction(
-            createTab(id = restoredTab.id, url = restoredTab.url))
-        ).joinBlocking()
-        store.dispatch(TabListAction.SelectTabAction(restoredTab.id)).joinBlocking()
+        val session = mockk<Session>()
+        every { sessionManager.selectedSession } returns session
 
         controller.handleCollectionOpenTabClicked(tab)
+
         verify { metrics.track(Event.CollectionTabRestored) }
         verify { activity.openToBrowser(BrowserDirection.FromHome) }
-        verify { selectTabUseCase.selectTab.invoke(restoredTab.id) }
-        verify { reloadUrlUseCase.reload.invoke(restoredTab.id) }
+        verify { selectTabUseCase.selectTab.invoke(session) }
+        verify { reloadUrlUseCase.reload.invoke(session) }
     }
 
     @Test
