@@ -22,6 +22,7 @@ import mozilla.components.browser.menu.item.BrowserMenuImageText
 import mozilla.components.concept.sync.AccountObserver
 import mozilla.components.concept.sync.AuthType
 import mozilla.components.concept.sync.OAuthAccount
+import mozilla.components.concept.sync.Profile
 import mozilla.components.support.ktx.android.content.getColorFromAttr
 import org.mozilla.fenix.FeatureFlags
 import org.mozilla.fenix.R
@@ -96,26 +97,26 @@ class HomeMenu(
     private fun getSyncItemTitle(): String =
         accountManager.accountProfileEmail ?: context.getString(R.string.sync_menu_sign_in)
 
-    private val syncSignInMenuItem = BrowserMenuImageText(
-        getSyncItemTitle(),
-        R.drawable.ic_synced_tabs,
-        primaryTextColor
-    ) {
-        onItemTapped.invoke(Item.SyncAccount(accountManager.accountState))
-    }
-
-    val desktopItem = BrowserMenuImageSwitch(
-        imageResource = R.drawable.ic_desktop,
-        label = context.getString(R.string.browser_menu_desktop_site),
-        initialState = { context.settings().openNextTabInDesktopMode }
-    ) { checked ->
-        onItemTapped.invoke(Item.DesktopMode(checked))
-    }
-
     @Suppress("ComplexMethod")
     private fun coreMenuItems(): List<BrowserMenuItem> {
         val experiments = context.components.analytics.experiments
         val settings = context.components.settings
+
+        val syncSignInMenuItem = BrowserMenuImageText(
+            getSyncItemTitle(),
+            R.drawable.ic_synced_tabs,
+            primaryTextColor
+        ) {
+            onItemTapped.invoke(Item.SyncAccount(accountManager.signedInToFxa()))
+        }
+
+        val desktopItem = BrowserMenuImageSwitch(
+            imageResource = R.drawable.ic_desktop,
+            label = context.getString(R.string.browser_menu_desktop_site),
+            initialState = { context.settings().openNextTabInDesktopMode }
+        ) { checked ->
+            onItemTapped.invoke(Item.DesktopMode(checked))
+        }
 
         val bookmarksItem = BrowserMenuImageText(
             context.getString(R.string.library_bookmarks),
@@ -221,10 +222,8 @@ class HomeMenu(
     }
 
     init {
-        val menuItems = coreMenuItems()
-
         // Report initial state.
-        onMenuBuilderChanged(BrowserMenuBuilder(menuItems))
+        onMenuBuilderChanged(BrowserMenuBuilder(coreMenuItems()))
 
         // Observe account state changes, and update menu item builder with a new set of items.
         context.components.backgroundServices.accountManagerAvailableQueue.runIfReadyOrQueue {
@@ -232,40 +231,47 @@ class HomeMenu(
             if (lifecycleOwner.lifecycle.currentState == Lifecycle.State.DESTROYED) {
                 return@runIfReadyOrQueue
             }
-            context.components.backgroundServices.accountManager.register(
-                object : AccountObserver {
-                    override fun onAuthenticationProblems() {
-                        lifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
-                            onMenuBuilderChanged(
-                                BrowserMenuBuilder(
-                                    menuItems
-                                )
+            context.components.backgroundServices.accountManager.register(object : AccountObserver {
+                override fun onAuthenticationProblems() {
+                    lifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                        onMenuBuilderChanged(
+                            BrowserMenuBuilder(
+                                coreMenuItems()
                             )
-                        }
+                        )
                     }
+                }
 
-                    override fun onAuthenticated(account: OAuthAccount, authType: AuthType) {
-                        lifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
-                            onMenuBuilderChanged(
-                                BrowserMenuBuilder(
-                                    menuItems
-                                )
+                override fun onProfileUpdated(profile: Profile) {
+                    lifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                        onMenuBuilderChanged(
+                            BrowserMenuBuilder(
+                                coreMenuItems()
                             )
-                        }
+                        )
                     }
+                }
 
-                    override fun onLoggedOut() {
-                        lifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
-                            onMenuBuilderChanged(
-                                BrowserMenuBuilder(
-                                    menuItems
-                                )
+                override fun onAuthenticated(account: OAuthAccount, authType: AuthType) {
+                    lifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                        onMenuBuilderChanged(
+                            BrowserMenuBuilder(
+                                coreMenuItems()
                             )
-                        }
+                        )
                     }
-                },
-                lifecycleOwner
-            )
+                }
+
+                override fun onLoggedOut() {
+                    lifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                        onMenuBuilderChanged(
+                            BrowserMenuBuilder(
+                                coreMenuItems()
+                            )
+                        )
+                    }
+                }
+            }, lifecycleOwner)
         }
     }
 }
