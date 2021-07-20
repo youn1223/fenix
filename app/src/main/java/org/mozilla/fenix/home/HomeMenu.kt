@@ -107,7 +107,7 @@ class HomeMenu(
             R.drawable.ic_synced_tabs,
             primaryTextColor
         ) {
-            onItemTapped.invoke(Item.SyncAccount(accountManager.signedInToFxa()))
+            onItemTapped.invoke(Item.SyncAccount(accountManager.accountState))
         }
 
         val desktopItem = BrowserMenuImageSwitch(
