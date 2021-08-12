@@ -385,7 +385,6 @@ open class DefaultToolbarMenu(
             if (shouldUseBottomToolbar) BrowserMenuDivider() else null,
             if (shouldUseBottomToolbar) menuToolbar else null
         )
-
     }
 
     private fun handleBookmarkItemTapped() {
@@ -448,7 +447,6 @@ open class DefaultToolbarMenu(
         }
     }
 
-
     init {
         // Observe account state changes, and update menu item builder with a new set of items.
         context.components.backgroundServices.accountManagerAvailableQueue.runIfReadyOrQueue {
@@ -456,19 +454,27 @@ open class DefaultToolbarMenu(
             if (lifecycleOwner.lifecycle.currentState == Lifecycle.State.DESTROYED) {
                 return@runIfReadyOrQueue
             }
-            context.components.backgroundServices.accountManager.register(object : AccountObserver {
-                private fun updateMenu() {
-                    lifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
-                        coreMenuItems = coreMenuItems()
-                        menuBuilder = buildMenu()
-                        onMenuBuilderChanged(menuBuilder)
+
+            context.components.backgroundServices.accountManager.register(
+                object : AccountObserver {
+                    private fun updateMenu() {
+                        lifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                            coreMenuItems = coreMenuItems()
+                            menuBuilder = buildMenu()
+                            onMenuBuilderChanged(menuBuilder)
+                        }
                     }
-                }
 
-                override fun onLoggedOut() { updateMenu() }
+                    override fun onLoggedOut() {
+                        updateMenu()
+                    }
 
-                override fun onProfileUpdated(profile: Profile) { updateMenu() }
-            }, lifecycleOwner)
+                    override fun onProfileUpdated(profile: Profile) {
+                        updateMenu()
+                    }
+                },
+                lifecycleOwner
+            )
         }
     }
 }

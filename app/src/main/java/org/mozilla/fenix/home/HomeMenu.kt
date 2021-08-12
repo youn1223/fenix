@@ -231,47 +231,51 @@ class HomeMenu(
             if (lifecycleOwner.lifecycle.currentState == Lifecycle.State.DESTROYED) {
                 return@runIfReadyOrQueue
             }
-            context.components.backgroundServices.accountManager.register(object : AccountObserver {
-                override fun onAuthenticationProblems() {
-                    lifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
-                        onMenuBuilderChanged(
-                            BrowserMenuBuilder(
-                                coreMenuItems()
-                            )
-                        )
-                    }
-                }
 
-                override fun onProfileUpdated(profile: Profile) {
-                    lifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
-                        onMenuBuilderChanged(
-                            BrowserMenuBuilder(
-                                coreMenuItems()
+            context.components.backgroundServices.accountManager.register(
+                object : AccountObserver {
+                    override fun onAuthenticationProblems() {
+                        lifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                            onMenuBuilderChanged(
+                                BrowserMenuBuilder(
+                                    coreMenuItems()
+                                )
                             )
-                        )
+                        }
                     }
-                }
 
-                override fun onAuthenticated(account: OAuthAccount, authType: AuthType) {
-                    lifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
-                        onMenuBuilderChanged(
-                            BrowserMenuBuilder(
-                                coreMenuItems()
+                    override fun onProfileUpdated(profile: Profile) {
+                        lifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                            onMenuBuilderChanged(
+                                BrowserMenuBuilder(
+                                    coreMenuItems()
+                                )
                             )
-                        )
+                        }
                     }
-                }
 
-                override fun onLoggedOut() {
-                    lifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
-                        onMenuBuilderChanged(
-                            BrowserMenuBuilder(
-                                coreMenuItems()
+                    override fun onAuthenticated(account: OAuthAccount, authType: AuthType) {
+                        lifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                            onMenuBuilderChanged(
+                                BrowserMenuBuilder(
+                                    coreMenuItems()
+                                )
                             )
-                        )
+                        }
                     }
-                }
-            }, lifecycleOwner)
+
+                    override fun onLoggedOut() {
+                        lifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                            onMenuBuilderChanged(
+                                BrowserMenuBuilder(
+                                    coreMenuItems()
+                                )
+                            )
+                        }
+                    }
+                },
+                lifecycleOwner
+            )
         }
     }
 }
