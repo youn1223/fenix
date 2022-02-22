@@ -136,7 +136,7 @@ class HomeScreenTest {
             verifyWelcomeHeader()
         }.openSearch {
             verifyScanButton()
-            verifySearchEngineButton()
+            verifySearchEnginesShortcutButton()
             verifyKeyboardVisibility()
         }.dismissSearchBar {
             verifyWelcomeHeader()

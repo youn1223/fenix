@@ -484,25 +484,6 @@ class SmokeTest {
     }
 
     @Test
-    // Verifies changing the default engine from the Search Shortcut menu
-    fun selectSearchEnginesShortcutTest() {
-        val enginesList = listOf("DuckDuckGo", "Google", "Amazon.com", "Wikipedia", "Bing", "eBay")
-
-        for (searchEngine in enginesList) {
-            homeScreen {
-            }.openSearch {
-                verifyKeyboardVisibility()
-                clickSearchEngineShortcutButton()
-                verifySearchEngineList(activityTestRule)
-                changeDefaultSearchEngine(activityTestRule, searchEngine)
-                verifySearchEngineIcon(searchEngine)
-            }.submitQuery("mozilla ") {
-                verifyUrl(searchEngine)
-            }.goToHomescreen { }
-        }
-    }
-
-    @Test
     // Swipes the nav bar left/right to switch between tabs
     fun swipeToSwitchTabTest() {
         val firstWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)

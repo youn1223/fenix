@@ -70,7 +70,7 @@ class SearchTest {
             verifySearchView()
             verifyBrowserToolbar()
             verifyScanButton()
-            verifySearchEngineButton()
+            verifySearchEnginesShortcutButton()
         }
     }
 
@@ -87,38 +87,42 @@ class SearchTest {
         }
     }
 
+    @SmokeTest
     @Test
-    fun shortcutButtonTest() {
-        homeScreen {
-        }.openThreeDotMenu {
-        }.openSettings {
-        }.openSearchSubMenu {
-            enableShowSearchShortcuts()
-        }.goBack {
-        }.goBack {
-        }.openSearch {
-            verifySearchBarEmpty()
-            clickSearchEngineButton(activityTestRule, "DuckDuckGo")
-            typeSearch("mozilla")
-            verifySearchEngineResults(2)
-            clickSearchEngineResult(activityTestRule, "DuckDuckGo")
-            verifySearchEngineURL("DuckDuckGo")
+    // Verifies changing the temporary search engine from the Search Shortcut menu
+    fun setTemporarySearchEngineFromShortcutsTest() {
+        val enginesList = listOf("DuckDuckGo", "Google", "Amazon.com", "Wikipedia", "Bing", "eBay")
+
+        for (searchEngine in enginesList) {
+            homeScreen {
+            }.openSearch {
+                verifyKeyboardVisibility()
+                clickSearchEngineShortcutButton()
+                verifySearchEngineList(activityTestRule)
+                changeSearchEngine(activityTestRule, searchEngine)
+                verifySearchEngineIcon(searchEngine)
+                typeSearch("mozilla ")
+                verifySearchEngineResults(2)
+            }.submitQuery("mozilla ") {
+                verifyUrl(searchEngine)
+            }.goToHomescreen { }
         }
     }
 
     @Test
-    fun shortcutSearchEngineSettingsTest() {
+    fun setDefaultSearchEngineFromShortcutsTest() {
         homeScreen {
-        }.openThreeDotMenu {
-        }.openSettings {
-        }.openSearchSubMenu {
-            enableShowSearchShortcuts()
-        }.goBack {
-        }.goBack {
         }.openSearch {
+            verifyKeyboardVisibility()
+            clickSearchEngineShortcutButton()
             scrollToSearchEngineSettings(activityTestRule)
-            clickSearchEngineSettings(activityTestRule)
-            verifySearchSettings()
+        }.clickSearchEngineSettings(activityTestRule) {
+            changeDefaultSearchEngine("Bing")
+            exitMenu()
+        }
+        homeScreen {
+        }.openSearch {
+            verifyDefaultSearchEngine("Bing")
         }
     }
 

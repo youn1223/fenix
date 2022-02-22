@@ -139,7 +139,7 @@ class SettingsSearchTest {
             verifyKeyboardVisibility()
             clickSearchEngineShortcutButton()
             verifyEnginesListShortcutContains(activityTestRule, searchEngine)
-            changeDefaultSearchEngine(activityTestRule, searchEngine)
+            changeSearchEngine(activityTestRule, searchEngine)
         }.submitQuery("mozilla ") {
             verifyUrl(searchEngine)
         }
@@ -222,6 +222,30 @@ class SettingsSearchTest {
         homeScreen {
         }.openSearch {
             verifyVoiceSearchButtonVisibility(false)
+        }
+    }
+
+    @Test
+    fun enableShowSearchShortcutsTest() {
+        homeScreen {
+        }.openThreeDotMenu {
+        }.openSettings {
+        }.openSearchSubMenu {
+            toggleShowSearchShortcuts()
+        }.goBack {
+        }.goBack {
+        }.openSearch {
+            verifySearchShortcutButtonSelected(true)
+            verifySearchEngineList(activityTestRule)
+            scrollToSearchEngineSettings(activityTestRule)
+        }.clickSearchEngineSettings(activityTestRule) {
+            toggleShowSearchShortcuts()
+            exitMenu()
+        }
+        homeScreen {
+        }.openSearch {
+            verifyAwesomeBarNotDisplayed()
+            verifySearchShortcutButtonSelected(false)
         }
     }
 }

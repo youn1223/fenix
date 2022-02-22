@@ -27,7 +27,6 @@ import androidx.test.espresso.matcher.ViewMatchers.withContentDescription
 import androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withSubstring
-import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
@@ -36,7 +35,6 @@ import androidx.test.uiautomator.UiScrollable
 import androidx.test.uiautomator.UiSelector
 import androidx.test.uiautomator.Until
 import org.hamcrest.CoreMatchers.allOf
-import org.hamcrest.CoreMatchers.startsWith
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -74,19 +72,27 @@ class SearchRobot {
         )
     }
 
-    fun verifySearchEngineButton() = assertSearchButton()
-    fun verifySearchWithText() = assertSearchWithText()
-    fun verifySearchEngineResults(count: Int) =
-        assertSearchEngineResults(count)
+    fun verifySearchEnginesShortcutButton() = assertSearchEnginesShortcutButton()
+
+    fun verifySearchShortcutButtonSelected(isSelected: Boolean) {
+        if (isSelected) {
+            assertTrue(searchEnginesShortcutButton.isChecked)
+        } else {
+            assertFalse(searchEnginesShortcutButton.isChecked)
+        }
+    }
+
+    fun verifySearchEngineResults(minCount: Int) =
+        assertSearchEngineResults(minCount)
     fun verifySearchEngineSuggestionResults(rule: ComposeTestRule, searchSuggestion: String) =
         assertSearchEngineSuggestionResults(rule, searchSuggestion)
     fun verifyNoSuggestionsAreDisplayed(rule: ComposeTestRule, searchSuggestion: String) =
         assertNoSuggestionsAreDisplayed(rule, searchSuggestion)
 
-    fun verifySearchEngineURL(searchEngineName: String) = assertSearchEngineURL(searchEngineName)
-    fun verifySearchSettings() = assertSearchSettings()
     fun verifySearchBarEmpty() = assertSearchBarEmpty()
-
+    fun verifyAwesomeBarNotDisplayed() {
+        assertFalse(awesomeBar.exists())
+    }
     fun verifyKeyboardVisibility() = assertKeyboardVisibility(isExpectedToBeVisible = true)
     fun verifySearchEngineList(rule: ComposeTestRule) = rule.assertSearchEngineList()
     fun verifySearchEngineIcon(expectedText: String) {
@@ -96,14 +102,10 @@ class SearchRobot {
 
     fun verifyEnginesListShortcutContains(rule: ComposeTestRule, searchEngineName: String) = assertEngineListShortcutContains(rule, searchEngineName)
 
-    fun changeDefaultSearchEngine(rule: ComposeTestRule, searchEngineName: String) =
+    fun changeSearchEngine(rule: ComposeTestRule, searchEngineName: String) =
         rule.selectDefaultSearchEngine(searchEngineName)
 
     fun clickSearchEngineShortcutButton() {
-        val searchEnginesShortcutButton = mDevice.findObject(
-            UiSelector()
-                .resourceId("$packageName:id/search_engines_shortcut_button")
-        )
         searchEnginesShortcutButton.waitForExists(waitingTime)
         searchEnginesShortcutButton.click()
     }
@@ -128,21 +130,6 @@ class SearchRobot {
         browserToolbarEditView().setText(searchTerm)
 
         mDevice.waitForIdle()
-    }
-
-    fun clickSearchEngineButton(rule: ComposeTestRule, searchEngineName: String) {
-        rule.waitForIdle()
-
-        mDevice.waitForObjects(
-            mDevice.findObject(
-                UiSelector().textContains(searchEngineName)
-            )
-        )
-
-        rule.onNodeWithText(searchEngineName)
-            .assertExists()
-            .assertHasClickAction()
-            .performClick()
     }
 
     fun clickSearchEngineResult(rule: ComposeTestRule, searchEngineName: String) {
@@ -170,13 +157,6 @@ class SearchRobot {
 
         rule.onNodeWithTag("mozac.awesomebar.suggestions")
             .performScrollToIndex(5)
-    }
-
-    fun clickSearchEngineSettings(rule: ComposeTestRule) {
-        rule.onNodeWithText("Search engine settings")
-            .assertIsDisplayed()
-            .assertHasClickAction()
-            .performClick()
     }
 
     fun clickClearButton() {
@@ -251,6 +231,16 @@ class SearchRobot {
             return BrowserRobot.Transition()
         }
 
+        fun clickSearchEngineSettings(rule: ComposeTestRule, interact: SettingsSubMenuSearchRobot.() -> Unit): SettingsSubMenuSearchRobot.Transition {
+            rule.onNodeWithText("Search engine settings")
+                .assertIsDisplayed()
+                .assertHasClickAction()
+                .performClick()
+
+            SettingsSubMenuSearchRobot().interact()
+            return SettingsSubMenuSearchRobot.Transition()
+        }
+
         fun goToSearchEngine(interact: NavigationToolbarRobot.() -> Unit): NavigationToolbarRobot.Transition {
             NavigationToolbarRobot().interact()
             return NavigationToolbarRobot.Transition()
@@ -280,15 +270,6 @@ private fun clearButton() =
     mDevice.findObject(UiSelector().resourceId("$packageName:id/mozac_browser_toolbar_clear_view"))
 
 private fun searchWrapper() = mDevice.findObject(UiSelector().resourceId("$packageName:id/search_wrapper"))
-
-private fun assertSearchEngineURL(searchEngineName: String) {
-    mDevice.waitNotNull(
-        Until.findObject(By.textContains("${searchEngineName.lowercase()}.com/?q=mozilla")),
-        waitingTime
-    )
-    onView(allOf(withText(startsWith("${searchEngineName.lowercase()}.com"))))
-        .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)))
-}
 
 private fun assertSearchEngineResults(minCount: Int) {
     mDevice.waitForObjects(
@@ -337,20 +318,10 @@ private fun assertScanButton() =
         ).waitForExists(waitingTime)
     )
 
-private fun assertSearchButton() =
+private fun assertSearchEnginesShortcutButton() =
     assertTrue(
-        mDevice.findObject(
-            UiSelector().resourceId("$packageName:id/search_engines_shortcut_button")
-        ).waitForExists(waitingTime)
+        searchEnginesShortcutButton.waitForExists(waitingTime)
     )
-
-private fun assertSearchWithText() =
-    onView(allOf(withText("THIS TIME, SEARCH WITH:")))
-        .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)))
-
-private fun assertSearchSettings() =
-    onView(allOf(withText("Default search engine")))
-        .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)))
 
 private fun assertSearchBarEmpty() =
     assertTrue(
@@ -463,7 +434,7 @@ private fun assertPastedToolbarText(expectedText: String) {
 }
 
 private val awesomeBar =
-    mDevice.findObject(UiSelector().resourceId("$packageName:id/mozac_browser_toolbar_edit_url_view"))
+    mDevice.findObject(UiSelector().resourceId("$packageName:id/awesome_bar"))
 
 private val voiceSearchButton = mDevice.findObject(UiSelector().description("Voice search"))
 
@@ -471,3 +442,8 @@ private val searchSuggestionsList =
     UiScrollable(
         UiSelector().className("android.widget.ScrollView")
     )
+
+private val searchEnginesShortcutButton = mDevice.findObject(
+    UiSelector()
+        .resourceId("$packageName:id/search_engines_shortcut_button")
+)
