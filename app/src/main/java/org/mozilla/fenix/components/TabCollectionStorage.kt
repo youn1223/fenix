@@ -21,7 +21,7 @@ import mozilla.components.support.base.observer.Observable
 import mozilla.components.support.base.observer.ObserverRegistry
 import org.mozilla.fenix.ext.components
 import org.mozilla.fenix.ext.toShortUrl
-import org.mozilla.fenix.home.sessioncontrol.viewholders.CollectionViewHolder
+import org.mozilla.fenix.home.collections.CollectionViewHolder
 import org.mozilla.fenix.perf.StrictModeManager
 
 class TabCollectionStorage(

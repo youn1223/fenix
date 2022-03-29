@@ -21,6 +21,7 @@ import org.mozilla.fenix.components.Components
 import org.mozilla.fenix.gleanplumb.Message
 import org.mozilla.fenix.home.BottomSpacerViewHolder
 import org.mozilla.fenix.home.TopPlaceholderViewHolder
+import org.mozilla.fenix.home.collections.CollectionViewHolder
 import org.mozilla.fenix.home.pocket.PocketCategoriesViewHolder
 import org.mozilla.fenix.home.pocket.PocketRecommendationsHeaderViewHolder
 import org.mozilla.fenix.home.pocket.PocketStoriesViewHolder
@@ -31,7 +32,6 @@ import org.mozilla.fenix.home.recenttabs.view.RecentTabsHeaderViewHolder
 import org.mozilla.fenix.home.recentvisits.view.RecentVisitsHeaderViewHolder
 import org.mozilla.fenix.home.recentvisits.view.RecentlyVisitedViewHolder
 import org.mozilla.fenix.home.sessioncontrol.viewholders.CollectionHeaderViewHolder
-import org.mozilla.fenix.home.sessioncontrol.viewholders.CollectionViewHolder
 import org.mozilla.fenix.home.sessioncontrol.viewholders.CustomizeHomeButtonViewHolder
 import org.mozilla.fenix.home.sessioncontrol.viewholders.NoCollectionsMessageViewHolder
 import org.mozilla.fenix.home.sessioncontrol.viewholders.PrivateBrowsingDescriptionViewHolder
@@ -214,6 +214,11 @@ class SessionControlAdapter(
     @SuppressWarnings("ComplexMethod", "LongMethod", "ReturnCount")
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         when (viewType) {
+            CollectionViewHolder.LAYOUT_ID -> return CollectionViewHolder(
+                composeView = ComposeView(parent.context),
+                viewLifecycleOwner,
+                interactor = interactor
+            )
             CustomizeHomeButtonViewHolder.LAYOUT_ID -> return CustomizeHomeButtonViewHolder(
                 composeView = ComposeView(parent.context),
                 viewLifecycleOwner = viewLifecycleOwner,
@@ -288,7 +293,6 @@ class SessionControlAdapter(
                     components.core.store,
                     interactor
                 )
-            CollectionViewHolder.LAYOUT_ID -> CollectionViewHolder(view, interactor)
             TabInCollectionViewHolder.LAYOUT_ID -> TabInCollectionViewHolder(
                 view as WidgetSiteItemView,
                 interactor
@@ -333,6 +337,11 @@ class SessionControlAdapter(
                 // entire Composable destroyed and recreated when this View is scrolled off or on screen again.
                 // This View already listens and maps store updates. Avoid creating and binding new Views.
                 // The composition will live until the ViewTreeLifecycleOwner to which it's attached to is destroyed.
+            }
+            is CollectionViewHolder -> {
+                // Dispose the underlying composition preparing CollectionViewHolder
+                // to maybe be updated with a new collection to display through `bindSession`.
+                holder.composeView.disposeComposition()
             }
             else -> super.onViewRecycled(holder)
         }
