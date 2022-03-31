@@ -38,7 +38,6 @@ import org.mozilla.fenix.helpers.TestHelper.createCustomTabIntent
 import org.mozilla.fenix.helpers.TestHelper.scrollToElementByText
 import org.mozilla.fenix.helpers.ViewVisibilityIdlingResource
 import org.mozilla.fenix.ui.robots.browserScreen
-import org.mozilla.fenix.ui.robots.collectionRobot
 import org.mozilla.fenix.ui.robots.customTabScreen
 import org.mozilla.fenix.ui.robots.enhancedTrackingProtection
 import org.mozilla.fenix.ui.robots.homeScreen
@@ -353,18 +352,18 @@ class SmokeTest {
         }
     }
 
-    @Test
-    // Verifies the Add to collection option in a tab's 3 dot menu
-    fun openMainMenuAddToCollectionTest() {
-        val defaultWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
-
-        navigationToolbar {
-        }.enterURLAndEnterToBrowser(defaultWebPage.url) {
-        }.openThreeDotMenu {
-        }.openSaveToCollection {
-            verifyCollectionNameTextField()
-        }
-    }
+    // @Test
+    // // Verifies the Add to collection option in a tab's 3 dot menu
+    // fun openMainMenuAddToCollectionTest() {
+    //     val defaultWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
+    //
+    //     navigationToolbar {
+    //     }.enterURLAndEnterToBrowser(defaultWebPage.url) {
+    //     }.openThreeDotMenu {
+    //     }.openSaveToCollection {
+    //         verifyCollectionNameTextField()
+    //     }
+    // }
 
     @Test
     // Verifies the Bookmark button in a tab's 3 dot menu
@@ -653,136 +652,135 @@ class SmokeTest {
         }
     }
 
-    @Test
-    fun verifyExpandedCollectionItemsTest() {
-        // disabling these features to have better visibility of Collections
-        featureSettingsHelper.setRecentTabsFeatureEnabled(false)
-        featureSettingsHelper.setPocketEnabled(false)
-
-        val webPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
-
-        navigationToolbar {
-        }.enterURLAndEnterToBrowser(webPage.url) {
-        }.openTabDrawer {
-            createCollection(webPage.title, collectionName)
-            snackBarButtonClick("VIEW")
-        }
-
-        homeScreen {
-            verifyCollectionIsDisplayed(collectionName)
-            verifyCollectionIcon()
-        }.expandCollection(collectionName) {
-            verifyTabSavedInCollection(webPage.title)
-            verifyCollectionTabLogo(true)
-            verifyCollectionTabUrl(true)
-            verifyShareCollectionButtonIsVisible(true)
-            verifyCollectionMenuIsVisible(true)
-            verifyCollectionItemRemoveButtonIsVisible(webPage.title, true)
-        }.collapseCollection(collectionName) {}
-
-        collectionRobot {
-            verifyTabSavedInCollection(webPage.title, false)
-            verifyShareCollectionButtonIsVisible(false)
-            verifyCollectionMenuIsVisible(false)
-            verifyCollectionTabLogo(false)
-            verifyCollectionTabUrl(false)
-            verifyCollectionItemRemoveButtonIsVisible(webPage.title, false)
-        }
-
-        homeScreen {
-        }.expandCollection(collectionName) {
-            verifyTabSavedInCollection(webPage.title)
-            verifyCollectionTabLogo(true)
-            verifyCollectionTabUrl(true)
-            verifyShareCollectionButtonIsVisible(true)
-            verifyCollectionMenuIsVisible(true)
-            verifyCollectionItemRemoveButtonIsVisible(webPage.title, true)
-        }.collapseCollection(collectionName) {}
-
-        collectionRobot {
-            verifyTabSavedInCollection(webPage.title, false)
-            verifyShareCollectionButtonIsVisible(false)
-            verifyCollectionMenuIsVisible(false)
-            verifyCollectionTabLogo(false)
-            verifyCollectionTabUrl(false)
-            verifyCollectionItemRemoveButtonIsVisible(webPage.title, false)
-        }
-    }
-
-    @Test
-    fun openAllTabsInCollectionTest() {
-        val webPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
-
-        navigationToolbar {
-        }.enterURLAndEnterToBrowser(webPage.url) {
-        }.openTabDrawer {
-            createCollection(webPage.title, collectionName)
-            verifySnackBarText("Collection saved!")
-            closeTab()
-        }
-
-        homeScreen {
-        }.expandCollection(collectionName) {
-            clickCollectionThreeDotButton()
-            selectOpenTabs()
-        }
-        tabDrawer {
-            verifyExistingOpenTabs(webPage.title)
-        }
-    }
-
-    @Test
-    fun shareCollectionTest() {
-        val firstWebsite = TestAssetHelper.getGenericAsset(mockWebServer, 1)
-        val secondWebsite = TestAssetHelper.getGenericAsset(mockWebServer, 2)
-        val sharingApp = "Gmail"
-        val urlString = "${secondWebsite.url}\n\n${firstWebsite.url}"
-
-        navigationToolbar {
-        }.enterURLAndEnterToBrowser(firstWebsite.url) {
-            verifyPageContent(firstWebsite.content)
-        }.openTabDrawer {
-            createCollection(firstWebsite.title, collectionName)
-        }.openNewTab {
-        }.submitQuery(secondWebsite.url.toString()) {
-            verifyPageContent(secondWebsite.content)
-        }.openThreeDotMenu {
-        }.openSaveToCollection {
-        }.selectExistingCollection(collectionName) {
-        }.goToHomescreen {
-        }.expandCollection(collectionName) {
-        }.clickShareCollectionButton {
-            verifyShareTabsOverlay(firstWebsite.title, secondWebsite.title)
-            selectAppToShareWith(sharingApp)
-            verifySharedTabsIntent(urlString, collectionName)
-        }
-    }
-
-    @Ignore("Failing, see: https://github.com/mozilla-mobile/fenix/issues/23296")
-    @Test
-    // Test running on beta/release builds in CI:
-    // caution when making changes to it, so they don't block the builds
-    fun deleteCollectionTest() {
-        val webPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
-
-        navigationToolbar {
-        }.enterURLAndEnterToBrowser(webPage.url) {
-        }.openTabDrawer {
-            createCollection(webPage.title, collectionName)
-            snackBarButtonClick("VIEW")
-        }
-
-        homeScreen {
-        }.expandCollection(collectionName) {
-            clickCollectionThreeDotButton()
-            selectDeleteCollection()
-        }
-
-        homeScreen {
-            verifySnackBarText("Collection deleted")
-            verifyNoCollectionsText()
-        }
-    }
+    // @Test
+    // fun verifyExpandedCollectionItemsTest() {
+    //     // disabling these features to have better visibility of Collections
+    //     featureSettingsHelper.setRecentTabsFeatureEnabled(false)
+    //     featureSettingsHelper.setPocketEnabled(false)
+    //
+    //     val webPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
+    //
+    //     navigationToolbar {
+    //     }.enterURLAndEnterToBrowser(webPage.url) {
+    //     }.openTabDrawer {
+    //         createCollection(webPage.title, collectionName)
+    //         snackBarButtonClick("VIEW")
+    //     }
+    //
+    //     homeScreen {
+    //         verifyCollectionIsDisplayed(collectionName)
+    //         verifyCollectionIcon()
+    //     }.expandCollection(collectionName) {
+    //         verifyTabSavedInCollection(webPage.title)
+    //         verifyCollectionTabLogo(true)
+    //         verifyCollectionTabUrl(true)
+    //         verifyShareCollectionButtonIsVisible(true)
+    //         verifyCollectionMenuIsVisible(true)
+    //         verifyCollectionItemRemoveButtonIsVisible(webPage.title, true)
+    //     }.collapseCollection(collectionName) {}
+    //
+    //     collectionRobot {
+    //         verifyTabSavedInCollection(webPage.title, false)
+    //         verifyShareCollectionButtonIsVisible(false)
+    //         verifyCollectionMenuIsVisible(false)
+    //         verifyCollectionTabLogo(false)
+    //         verifyCollectionTabUrl(false)
+    //         verifyCollectionItemRemoveButtonIsVisible(webPage.title, false)
+    //     }
+    //
+    //     homeScreen {
+    //     }.expandCollection(collectionName) {
+    //         verifyTabSavedInCollection(webPage.title)
+    //         verifyCollectionTabLogo(true)
+    //         verifyCollectionTabUrl(true)
+    //         verifyShareCollectionButtonIsVisible(true)
+    //         verifyCollectionMenuIsVisible(true)
+    //         verifyCollectionItemRemoveButtonIsVisible(webPage.title, true)
+    //     }.collapseCollection(collectionName) {}
+    //
+    //     collectionRobot {
+    //         verifyTabSavedInCollection(webPage.title, false)
+    //         verifyShareCollectionButtonIsVisible(false)
+    //         verifyCollectionMenuIsVisible(false)
+    //         verifyCollectionTabLogo(false)
+    //         verifyCollectionTabUrl(false)
+    //         verifyCollectionItemRemoveButtonIsVisible(webPage.title, false)
+    //     }
+    // }
+    //
+    // @Test
+    // fun openAllTabsInCollectionTest() {
+    //     val webPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
+    //
+    //     navigationToolbar {
+    //     }.enterURLAndEnterToBrowser(webPage.url) {
+    //     }.openTabDrawer {
+    //         createCollection(webPage.title, collectionName)
+    //         verifySnackBarText("Collection saved!")
+    //         closeTab()
+    //     }
+    //
+    //     homeScreen {
+    //     }.expandCollection(collectionName) {
+    //         clickCollectionThreeDotButton()
+    //         selectOpenTabs()
+    //     }
+    //     tabDrawer {
+    //         verifyExistingOpenTabs(webPage.title)
+    //     }
+    // }
+    //
+    // @Test
+    // fun shareCollectionTest() {
+    //     val firstWebsite = TestAssetHelper.getGenericAsset(mockWebServer, 1)
+    //     val secondWebsite = TestAssetHelper.getGenericAsset(mockWebServer, 2)
+    //     val sharingApp = "Gmail"
+    //     val urlString = "${secondWebsite.url}\n\n${firstWebsite.url}"
+    //
+    //     navigationToolbar {
+    //     }.enterURLAndEnterToBrowser(firstWebsite.url) {
+    //         verifyPageContent(firstWebsite.content)
+    //     }.openTabDrawer {
+    //         createCollection(firstWebsite.title, collectionName)
+    //     }.openNewTab {
+    //     }.submitQuery(secondWebsite.url.toString()) {
+    //         verifyPageContent(secondWebsite.content)
+    //     }.openThreeDotMenu {
+    //     }.openSaveToCollection {
+    //     }.selectExistingCollection(collectionName) {
+    //     }.goToHomescreen {
+    //     }.expandCollection(collectionName) {
+    //     }.clickShareCollectionButton {
+    //         verifyShareTabsOverlay(firstWebsite.title, secondWebsite.title)
+    //         selectAppToShareWith(sharingApp)
+    //         verifySharedTabsIntent(urlString, collectionName)
+    //     }
+    // }
+    //
+    // @Test
+    // // Test running on beta/release builds in CI:
+    // // caution when making changes to it, so they don't block the builds
+    // fun deleteCollectionTest() {
+    //     val webPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
+    //
+    //     navigationToolbar {
+    //     }.enterURLAndEnterToBrowser(webPage.url) {
+    //     }.openTabDrawer {
+    //         createCollection(webPage.title, collectionName)
+    //         snackBarButtonClick("VIEW")
+    //     }
+    //
+    //     homeScreen {
+    //     }.expandCollection(collectionName) {
+    //         clickCollectionThreeDotButton()
+    //         selectDeleteCollection()
+    //     }
+    //
+    //     homeScreen {
+    //         verifySnackBarText("Collection deleted")
+    //         verifyNoCollectionsText()
+    //     }
+    // }
 
     @Test
     // Verifies that deleting a Bookmarks folder also removes the item from inside it.
