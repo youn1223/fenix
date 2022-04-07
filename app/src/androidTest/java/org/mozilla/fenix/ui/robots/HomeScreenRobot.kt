@@ -189,8 +189,6 @@ class HomeScreenRobot {
         }
     }
 
-    fun verifyCollectionIcon() = onView(withId(R.id.collection_icon)).check(matches(isDisplayed()))
-
     fun togglePrivateBrowsingModeOnOff() {
         onView(ViewMatchers.withResourceName("privateBrowsingButton"))
             .perform(click())
@@ -392,18 +390,18 @@ class HomeScreenRobot {
             return TabDrawerRobot.Transition()
         }
 
-        // fun expandCollection(title: String, interact: CollectionRobot.() -> Unit): CollectionRobot.Transition {
-        //     // Depending on the screen dimensions collections might report as visible on screen
-        //     // but actually have the bottom toolbar above so interactions with collections might fail.
-        //     // As a quick solution we'll try scrolling to the element below collection on the homescreen
-        //     // so that they are displayed above in their entirety.
-        //     scrollToElementByText(appContext.getString(R.string.pocket_stories_header_1))
-        //
-        //     collectionTitle(title).click()
-        //
-        //     CollectionRobot().interact()
-        //     return CollectionRobot.Transition()
-        // }
+        fun expandCollection(title: String, interact: CollectionRobot.() -> Unit): CollectionRobot.Transition {
+            // Depending on the screen dimensions collections might report as visible on screen
+            // but actually have the bottom toolbar above so interactions with collections might fail.
+            // As a quick solution we'll try scrolling to the element below collection on the homescreen
+            // so that they are displayed above in their entirety.
+            scrollToElementByText(appContext.getString(R.string.pocket_stories_header_1))
+            collectionTitle(title).waitForExists(waitingTime)
+            collectionTitle(title).click()
+
+            CollectionRobot().interact()
+            return CollectionRobot.Transition()
+        }
 
         fun openRecentlyVisitedSearchGroupHistoryList(title: String, interact: HistoryRobot.() -> Unit): HistoryRobot.Transition {
             val searchGroup = recentlyVisitedList.getChildByText(UiSelector().text(title), title, true)
@@ -644,6 +642,12 @@ private fun assertPrivateSessionMessage() =
                     getStringResource(R.string.private_browsing_common_myths)
                 )
         ).waitForExists(waitingTime)
+    )
+
+private fun collectionTitle(title: String) =
+    mDevice.findObject(
+        UiSelector()
+            .text(title)
     )
 
 private fun assertExistingTopSitesList() =

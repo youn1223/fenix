@@ -38,7 +38,6 @@ import androidx.test.uiautomator.UiObject
 import androidx.test.uiautomator.UiScrollable
 import androidx.test.uiautomator.UiSelector
 import androidx.test.uiautomator.Until
-import java.io.File
 import kotlinx.coroutines.runBlocking
 import mozilla.components.browser.state.search.SearchEngine
 import mozilla.components.support.ktx.android.content.appName
@@ -55,6 +54,7 @@ import org.mozilla.fenix.helpers.idlingresource.NetworkConnectionIdlingResource
 import org.mozilla.fenix.ui.robots.BrowserRobot
 import org.mozilla.fenix.ui.robots.mDevice
 import org.mozilla.fenix.utils.IntentUtils
+import java.io.File
 
 object TestHelper {
 

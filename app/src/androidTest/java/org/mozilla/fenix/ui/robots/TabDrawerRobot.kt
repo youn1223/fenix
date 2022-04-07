@@ -228,25 +228,21 @@ class TabDrawerRobot {
         tabMediaControlButton().click()
     }
 
-    fun clickSelectTabs() {
+    fun clickSelectTabsOption() {
         threeDotMenu().click()
 
-        mDevice.waitNotNull(
-            Until.findObject(text("Select tabs")),
-            waitingTime
-        )
-
-        val selectTabsButton = mDevice.findObject(text("Select tabs"))
+        val selectTabsButton = mDevice.findObject(UiSelector().text("Select tabs"))
+        selectTabsButton.waitForExists(waitingTime)
         selectTabsButton.click()
     }
 
     fun selectTab(title: String) {
-        mDevice.waitNotNull(
-            findObject(text(title)),
-            waitingTime
+        val tab = mDevice.findObject(
+            UiSelector()
+                .resourceId("$packageName:id/tab_item")
+                .childSelector(UiSelector().text(title))
         )
-
-        val tab = mDevice.findObject(text(title))
+        tab.waitForExists(waitingTime)
         tab.click()
     }
 
@@ -265,9 +261,10 @@ class TabDrawerRobot {
         collectionName: String,
         firstCollection: Boolean = true
     ) {
-        clickSelectTabs()
-        selectTab(tabTitle)
         tabDrawer {
+            clickSelectTabsOption()
+            selectTab(tabTitle)
+            verifyTabsMultiSelectionCounter(1)
         }.clickSaveCollection {
             if (!firstCollection)
                 clickAddNewCollection()
