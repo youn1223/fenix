@@ -103,7 +103,7 @@ class DefaultMessageControllerTest {
         verify { store.dispatch(MessageDisplayed(message)) }
     }
 
-    private fun mockMessage(data: MessageData = MessageData(_context = testContext)) = Message(
+    private fun mockMessage(data: MessageData = MessageData()) = Message(
         id = "id",
         data = data,
         style = mockk(relaxed = true),
